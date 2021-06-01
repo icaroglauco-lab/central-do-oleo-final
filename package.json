@@ -1,0 +1,30 @@
+{
+  "name": "central-do-oleo-vca-2",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^1.0.0-next.7",
+    "carbon-components-svelte": "^0.33.0",
+    "node-sass": "^6.0.0",
+    "postcss": "^8.3.0",
+    "sass": "^1.34.0",
+    "svelte": "^3.37.0",
+    "svelte-calendar": "^2.0.4",
+    "svelte-preprocess": "^4.7.3",
+    "vite": "^2.3.4"
+  },
+  "dependencies": {
+    "clipboard-copy": "^3.2.0",
+    "firebase": "^8.6.3",
+    "gsap": "^3.6.1",
+    "rxfire": "^4.0.0",
+    "rxjs": "^6.6.7",
+    "svelte-fa": "^2.2.0",
+    "svelte-icons": "^2.1.0",
+    "svelte-materialify": "^0.3.10"
+  }
+}
