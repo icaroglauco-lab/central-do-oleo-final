@@ -1,5 +1,6 @@
 <script>
     export let add = "";
+    import versão from './versão'
 </script>
 
 <video autoplay muted loop id="myVideo"
@@ -8,11 +9,19 @@ style={`
     height: 100%;
     ${add}
     `}
+    poster={"loading_bg.png"}
 >
-<source src="https://firebasestorage.googleapis.com/v0/b/central-do-oleo-vca.appspot.com/o/landing%20bg.mp4?alt=media&token=4b85297f-bb9c-4eb5-bbc8-ac1f4d9bb080" type="video/mp4">
+<source src="https://firebasestorage.googleapis.com/v0/b/central-do-oleo-vca.appspot.com/o/landing_2.mp4?alt=media&token=5f0a502d-bdf6-4e25-a16f-6988a772af10" type="video/mp4">
 </video>
 
 <h4>Central do Óleo VCA</h4>
+
+<span style="font-size: 10px;
+    position: fixed;
+    bottom: 0px;
+    left: 2px;
+    display: block;
+    color: black;">{versão}</span>
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:wght@700&family=Mate+SC&display=swap');  

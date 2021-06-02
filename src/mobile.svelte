@@ -1,6 +1,6 @@
 <div id="app_wrapper">
 
-<ContentSwitcher bind:selectedIndex size="xl" style="width: 100vw;">
+<ContentSwitcher bind:selectedIndex size="xl" style="width: 100vw; height: 4rem;">
     <Switch>
         <div class="wrapper">
             <div class="icon">
@@ -32,7 +32,6 @@
   on:close
   on:submit={()=>{
       cliente_modal_submit();
-      console.log("!", cadastro);
       cliente_modal = false;
   }}
   primaryButtonDisabled={cadastro.nome.length==0}
@@ -55,7 +54,6 @@
             {#each cadastro.carros as carro_list_item}
             <SLR>
                 <ClickableTile on:click={()=>{
-                    console.log("!", {...carro_list_item}) 
                     editar_cadastro_carro(carro_list_item);
                     cadastro_modal = true;
                 }}>
@@ -89,7 +87,6 @@
   on:submit={()=>{
       if( notValid.length!==0 ) return;
       carro_modal_submit();
-      console.log("!", carro_cadastro);
       cadastro_modal = false;
       notValid = "";
   }}
@@ -143,7 +140,6 @@
                 <Button kind="danger" 
                     on:click={()=>{
                         let {nome, representante, telefone, carros, id} = row;
-                        console.log(nome, representante, telefone, carros, id);
                         remover_cliente({nome, representante, telefone, carros, id});
                     }}
                 >
@@ -162,7 +158,6 @@
                     transform: translateX(-50%);" 
                     icon={FaUserPlus}
             on:click={()=>{
-                console.log("!")
                 novo_cadastro();
                 cliente_modal = true;
             }}            
@@ -215,6 +210,7 @@
         height: 100vh;
         width: 100vw;
         flex-direction: column;
+        background-color: white;
     }
 
     .wrapper{
@@ -259,6 +255,7 @@
       StructuredListCell as SLC,
       StructuredListBody as SLB,
     } from "carbon-components-svelte";
+    import { onMount } from "svelte";   
 
     //variáveis de controle
     let selectedIndex = 0;
@@ -289,7 +286,6 @@
     let notValid = "";
     $: if(carro_cadastro.placa.match(/[A-Z]{3}[0-9][0-9A-Z][0-9]{2}/)){
         let carro_ = $carros.find( car => car.placa === carro_cadastro.placa && car.id !== (carro_cadastro.id || null)) //procura um carro na lista de carros, que ja tenha a placa do carro em cadastro
-        console.log(carro_cadastro, carro_cadastro.placa, carro_)
         if(carro_){
             notValid = "Placa já existente";
         }
@@ -325,7 +321,6 @@
 
     //função de cadastro de cliente
     const registrar_cliente = () => { //apenas chuta pro gol do cadastro
-        console.log(cadastro);
         let cliente_data = {
             id : cliente_ref.id,
             representante : $sessão.id,
@@ -367,7 +362,6 @@
         let carros_ = $carros.filter(car => cliente.carros.map(c=> c? c.id : null).includes(car.id) );
         
         let filtered = $sessão.clientes.filter(cli => cli === cliente.id);
-        console.log(filtered, cliente, $sessão.clientes, carros_)
         firestore.collection("Representantes").doc($sessão.id).update({
             clientes : filtered
         })
@@ -432,13 +426,29 @@
     }
 
 
-    $: console.log($sessão_clientes, $sessão)
     //lista de clientes em observação a mudança de dados
     $: fullList = $sessão_clientes.map(cliente => {
         cliente.n_carros = cliente.carros.length;
         return cliente;
     });
     $: filtered_list = fullList.filter( cliente => cliente.nome.includes(cliente_query) ||cliente.telefone.includes(cliente_query) || `carros ${cliente.n_carros}`.includes(cliente_query)  );
+
+    //onesignal
+    onMount(()=>{
+        
+        let {OneSignal} = window;
+        OneSignal.push(function(){
+            OneSignal.init({
+                appId: "686430d5-b7be-47a4-a6a1-ec8c8ddaba33",
+            });
+
+            OneSignal.getUserId(function(userId) {
+                let notification_devices = $sessão.notification_devices || [];
+                if(!notification_devices.includes(userId)) notification_devices.push(userId);
+                firestore.collection("Representantes").doc($sessão.id).set({...$sessão, notification_devices})
+            });
+        });
+    });
 
 
 </script>

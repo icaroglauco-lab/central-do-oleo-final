@@ -11,8 +11,12 @@
     } from "carbon-components-svelte"; 
     import { InlineNotification } from "carbon-components-svelte";  
     import { firestore } from "./firebase"; 
-    import { sessão } from "./stores";
-import VideoBg from "./video_bg.svelte";
+    import { sessão, representantes } from "./stores";
+    import VideoBg from "./video_bg.svelte";
+    import { onMount } from 'svelte';
+
+    
+
 
     //cadastro
     let nome;
@@ -29,7 +33,7 @@ import VideoBg from "./video_bg.svelte";
             let ref = firestore.collection("Representantes").doc();
             ref.set({
                 id: ref.id,
-                nome, telefone, usuario, senha,
+                nome : nome.trim(), telefone, usuario, senha,
                 autorizado : false
             });
             nome = telefone = usuario = senha = "";
@@ -39,13 +43,13 @@ import VideoBg from "./video_bg.svelte";
     //login
     let login = { usuario: '', senha : '' }
     const logar = async () => {
-        let check = await firestore.collection("Representantes").where("usuario", "==", login.usuario).where("senha", "==", login.senha).get();
-        if(!check.empty){
-            let data = check.docs[0].data();
-            if(!data.autorizado){
+
+        let check = $representantes.find(rep => rep.usuario.trim() === login.usuario.trim() && rep.senha.trim() === login.senha.trim() );
+        if(!(check===undefined)){
+            if(!check.autorizado){
                 login_error = "Cadastro ainda não autorizado (2)"
             }
-            else sessão.set(check.docs[0].data());
+            else sessão.set(check);
         }
         else{
             login_error = "Usuário e senha não encontrados (1)"
@@ -58,6 +62,7 @@ import VideoBg from "./video_bg.svelte";
     let login_error = "";
     let cadastro_error = "";
     let cadastro_sucesso = false;
+
 
 </script>
 
@@ -96,7 +101,6 @@ import VideoBg from "./video_bg.svelte";
   primaryButtonText="Logar"
   secondaryButtonText="Registrar"
   on:click:button--secondary={(event)=> {
-      console.log(event);
       register_modal=true;
       login_modal=false;
     }}

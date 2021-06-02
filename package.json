@@ -2,8 +2,8 @@
   "name": "central-do-oleo-vca-2",
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "vite --host",
+    "build": "echo export default \"versao_%time:~0,2%%time:~3,2%%time:~6,2%_%date:~-10,2%%date:~-7,2%%date:~-4,4%\" > src/versão.js && vite build",
     "serve": "vite preview"
   },
   "devDependencies": {
@@ -21,6 +21,7 @@
     "clipboard-copy": "^3.2.0",
     "firebase": "^8.6.3",
     "gsap": "^3.6.1",
+    "onesignal": "^0.1.2",
     "rxfire": "^4.0.0",
     "rxjs": "^6.6.7",
     "svelte-fa": "^2.2.0",

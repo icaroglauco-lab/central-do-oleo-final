@@ -4,7 +4,10 @@
 
 
 <div class="representantes">
-  <List class="elevation-2" style="width:300px">
+  <List class="elevation-2" style="
+                                width:300px; 
+                                height: 100vh;
+                                padding: 0;">
     <ListItem on:click={() => actived_representante_view = ""}>
       {#if actived_representante_view === ""}
         <h5 style="height:35px">Representantes:</h5>
@@ -178,6 +181,7 @@
 
   import { fade } from "svelte/transition";
   import { firestore } from "./firebase";
+import { onMount } from "svelte";
 
   //variáveis de controle
   // serviços opções selecionadas 
@@ -249,8 +253,6 @@
     //carros prep
     let carros_ = $carros.filter(car => clientes_.map(cli => cli.carros).join().includes(car.id) )
 
-    console.log(clientes_, carros_);
-    console.log("TODO delete");
 
     carros_.forEach(car => firestore.collection("Carros").doc(car.id).delete());
     clientes_.forEach(cli => firestore.collection("Clientes").doc(cli.id).delete());
@@ -259,8 +261,6 @@
     deleteModal.open = false;
     deleteModal.target = null;
   }
-
-
   
 </script>
 
@@ -278,12 +278,17 @@
   }
   :global(.barra_pesquisa){
     grid-area: p;
+    position: fixed;
+    width: 100vw;
+    z-index: 999;
   }
   .representantes{
     grid-area: r;
+    margin-top: 3rem;
   }
   .content_wrapper{
     grid-area: c;
+    margin-top: 4rem;
   }
 
   .content_wrapper{
@@ -294,7 +299,8 @@
 
   .representante_view{
     display: grid;
-    grid-gap: 15px
+    grid-gap: 15px;    
+    grid-template-rows: 3rem 10px 3rem;
   }
   
 

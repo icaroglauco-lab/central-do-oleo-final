@@ -103,6 +103,7 @@
     import { carros, clientes, representantes } from "./stores";
     import 'flatpickr/dist/l10n/pt.js'
     import { firestore } from './firebase';
+    import {doPost} from './onesignal.js';
 
     //campos para registro
     let value="";
@@ -140,6 +141,15 @@
         carro: carro$, entrada: entrada$, feito: feito$, id: ref$.id, representante: representante$, saida: saida$, valor: valor$
       })
 
+      //manda mensagem onesignal para o representante relacionado - futuramente, o cliente
+      let message = `Serviço marcado para o veículo ${carro.modelo} - ${carro.placa} no valor de ${valor$} para o dia ${saida$}`;
+      let title = `Notificação de serviço, veículo ${carro.placa}`;
+      doPost({
+        content : {contents: {'en' : message}, headings : {'en' : title}}, 
+        include_player_ids : representante.notification_devices
+      })
+
+
       //joga para o histórico caso esteja marcado como feito
       if(feito){
         let historyref = firestore.collection("Histories").doc();
@@ -156,6 +166,7 @@
       value="";
       feito = false;
       data = "";
+      open = false;
     }
     
     //formatter

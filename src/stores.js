@@ -237,11 +237,12 @@ export const sessão_clientes = readable([], function start(set) {
         })
     )
     .subscribe( values => {
-        console.log(values);
 
         sessão.subscribe(sessão_data => {
             set(values.filter(cliente => {
-                return sessão_data.clientes.includes(cliente.id);
+                if("clientes" in sessão_data)
+                    return sessão_data.clientes.includes(cliente.id);
+                return false;
             }))
         });
     })
