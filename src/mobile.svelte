@@ -255,7 +255,14 @@
       StructuredListCell as SLC,
       StructuredListBody as SLB,
     } from "carbon-components-svelte";
-    import { onMount } from "svelte";   
+    import eruda from "eruda"; 
+    import {onMount} from 'svelte';
+
+    let console;
+
+    eruda.init();
+    console = eruda.get('console');
+    console.config.set('catchGlobalErr', true);
 
     //variáveis de controle
     let selectedIndex = 0;
@@ -434,21 +441,41 @@
     $: filtered_list = fullList.filter( cliente => cliente.nome.includes(cliente_query) ||cliente.telefone.includes(cliente_query) || `carros ${cliente.n_carros}`.includes(cliente_query)  );
 
     //onesignal
-    onMount(()=>{
-        
-        let {OneSignal} = window;
-        OneSignal.push(function(){
-            OneSignal.init({
-                appId: "686430d5-b7be-47a4-a6a1-ec8c8ddaba33",
-            });
 
-            OneSignal.getUserId(function(userId) {
-                let notification_devices = $sessão.notification_devices || [];
-                if(!notification_devices.includes(userId)) notification_devices.push(userId);
-                firestore.collection("Representantes").doc($sessão.id).set({...$sessão, notification_devices})
+    onMount(()=>{
+        let {OneSignal} = window;
+
+        console.log("!");
+
+        OneSignal.push(["init", {
+            appId: "686430d5-b7be-47a4-a6a1-ec8c8ddaba33",
+            // Your other init settings
+        }]);
+
+        function setUserIdFirestore (){
+            console.log("setUserIdFirestore");
+            OneSignal.push(()=>{
+                OneSignal.getUserId(function(userId) {
+                    console.log("userId", userId);
+                    let notification_devices = $sessão.notification_devices || [];
+                    if(!notification_devices.includes(userId) && userId!==null) notification_devices.push(userId);
+                    firestore.collection("Representantes").doc($sessão.id).set({...$sessão, notification_devices})
+                });
+            })
+        }
+
+        setUserIdFirestore();
+        OneSignal.push(()=>{
+            OneSignal.on('subscriptionChange', function (isSubscribed) {
+                console.log('subscriptionChange');
+                if(isSubscribed){
+                    setUserIdFirestore();
+                }
             });
-        });
-    });
+        })
+    })
+    
+        
 
 
 </script>

@@ -45,6 +45,7 @@
     const logar = async () => {
 
         let check = $representantes.find(rep => rep.usuario.trim() === login.usuario.trim() && rep.senha.trim() === login.senha.trim() );
+        if("clientes" in check) check.clientes = check.clientes.map(cli => cli.id);
         if(!(check===undefined)){
             if(!check.autorizado){
                 login_error = "Cadastro ainda não autorizado (2)"
