@@ -280,6 +280,9 @@
         carros : []
         //representante, id, gerados!
     }
+    let temp_carros = []; //variavel de cadastro de carros
+                          //temporariamente enquanto não confirma cliente
+
     //cadastro de carros
     let carro_cadastro = {
         modelo : "",
@@ -293,20 +296,16 @@
     let notValid = "";
     $: if(carro_cadastro.placa.match(/[A-Z]{3}[0-9][0-9A-Z][0-9]{2}/)){
         let carro_ = $carros.find( car => car.placa === carro_cadastro.placa && car.id !== (carro_cadastro.id || null)) //procura um carro na lista de carros, que ja tenha a placa do carro em cadastro
-        if(carro_){
+        if(carro_ || temp_carros.find(e => e.data.placa === carro_cadastro.placa  && e.data.id !== (carro_cadastro.id || null))){
             notValid = "Placa já existente";
         }
         else notValid = "";
     }
     else notValid = "Placa inválida"
 
-   
 
-    //FEITO
-    //funções intermediárias para edição, elas precisam passar id existente e preparar as variáveis de cadastro (carro e cliente)
-    //TODO
-    //testar
 
+    //Cliente
     const novo_cadastro = () => { //função é de abrir um escopo seguro de erros para separar edição de cadastro e criação de um
         cliente_ref = firestore.collection("Clientes").doc();
         cadastro = {
@@ -315,6 +314,7 @@
             carros : []
             //representante, id, gerados!
         }
+        temp_carros = [];
         FLAG_cliente = "novo"
     }
 
@@ -324,6 +324,16 @@
         }
         cliente_ref = firestore.collection("Clientes").doc(cliente_data.id);
         FLAG_cliente = "edição"
+    }
+
+    //função de submit do modal de cliente 
+    const cliente_modal_submit = () => {
+        temp_carros.forEach(carr => {
+            carr.ref.set(carr.data);
+        });
+        temp_carros = [];
+        if(FLAG_cliente === "novo") registrar_cliente();
+        if(FLAG_cliente === "edição") realizar_edição_cliente();
     }
 
     //função de cadastro de cliente
@@ -356,11 +366,6 @@
         //campos mantenhem-se os mesmos
     }
     
-    //função de submit do modal de cliente 
-    const cliente_modal_submit = () => {
-        if(FLAG_cliente === "novo") registrar_cliente();
-        if(FLAG_cliente === "edição") realizar_edição_cliente();
-    }
 
     //remover cliente
     const remover_cliente = (cliente) => {
@@ -377,6 +382,12 @@
         carros_.forEach(car => firestore.collection("Carros").doc(car.id).delete());    
     }
 
+    //Carro
+    const carro_modal_submit = () => {
+        if(FLAG_carro === "novo") realizar_cadastro_carro();
+        if(FLAG_carro === "edição") realizar_edição_carro();
+    }
+
     //função de cadastro de carro
     const registrar_carro = () => { //apenas prepara o scopo
         carro_ref = firestore.collection("Carros").doc();
@@ -390,13 +401,13 @@
 
     const realizar_cadastro_carro = () => {
         let { modelo, placa } = carro_cadastro;
-        let aux = {
+	    let aux = {
             id : carro_ref.id,
-            dono : cadastro.id,
+            dono : cliente_ref.id,
             modelo, placa
         }
         
-        carro_ref.set(aux);
+        temp_carros = [...temp_carros, { ref: carro_ref, data : aux}]
         carro_cadastro = { //reset
             modelo : "",
             placa: "",
@@ -426,11 +437,7 @@
         cadastro.carros[index] = {...auxf};
     }
     
-    //modal submit
-    const carro_modal_submit = () => {
-        if(FLAG_carro === "novo") realizar_cadastro_carro();
-        if(FLAG_carro === "edição") realizar_edição_carro();
-    }
+
 
 
     //lista de clientes em observação a mudança de dados
