@@ -79,7 +79,7 @@ export const representantes = readable([], function start(set) {
                             _c_ = { ..._c_,
                                 carros : _c_.carros.map( car_ => {
                                     let find = carros.find( c => c.id === car_);
-                                    find.servicos = servicos_.filter(ser => ser.carro === find.id);
+                                    if(find!==undefined) find.servicos = servicos_.filter(ser => ser.carro === find.id);
                                     return find;
                                 }),
                             }

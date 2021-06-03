@@ -14,8 +14,10 @@
     import { sessão, representantes } from "./stores";
     import VideoBg from "./video_bg.svelte";
     import { onMount } from 'svelte';
+    import eruda from "eruda"; 
 
-    
+    console = eruda.get('console');
+    console.config.set('catchGlobalErr', true);
 
 
     //cadastro
@@ -45,8 +47,9 @@
     const logar = async () => {
 
         let check = $representantes.find(rep => rep.usuario.trim() === login.usuario.trim() && rep.senha.trim() === login.senha.trim() );
-        if("clientes" in check) check.clientes = check.clientes.map(cli => cli.id);
+        
         if(!(check===undefined)){
+            if("clientes" in check) check.clientes = check.clientes.map(cli => cli.id);
             if(!check.autorizado){
                 login_error = "Cadastro ainda não autorizado (2)"
             }

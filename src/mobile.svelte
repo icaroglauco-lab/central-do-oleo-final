@@ -105,7 +105,29 @@
             />
         {/if}
     </FluidForm>
-    
+
+    {#if (FLAG_carro=="edição")}
+    <Button kind="danger" style="align-self: end"
+        on:click={()=>{
+            
+            //remove from local
+            temp_carros = temp_carros.filter(car => car.data.id !== carro_cadastro.id);
+            cadastro.carros = cadastro.carros.filter( car => car.id !== carro_cadastro.id );
+
+            //remove from firebase
+            firestore.collection("Carros").doc(carro_cadastro.id).delete();
+
+            //clean
+            cadastro_modal = false;
+            notValid = "";
+            carro_cadastro_reset();
+
+            //todo - remove from firebase
+        }}
+    >
+        Remover do cadastro
+    </Button>
+    {/if}
 </Modal>
 
 {#if selectedIndex === 0}
@@ -258,11 +280,8 @@
     import eruda from "eruda"; 
     import {onMount} from 'svelte';
 
-    let console;
-
-    eruda.init();
-    console = eruda.get('console');
-    console.config.set('catchGlobalErr', true);
+    
+    
 
     //variáveis de controle
     let selectedIndex = 0;
@@ -343,14 +362,20 @@
             representante : $sessão.id,
             ...cadastro
         };
+
+        if(cliente_data.hasOwnProperty("carros")) cliente_data = {...cliente_data, carros: cliente_data.carros.map(car => car.id)};
         cliente_ref.set(cliente_data);
+
+        let clientes_ = $sessão.clientes || [];
+
         firestore.collection("Representantes").doc($sessão.id).update({
-            clientes : [...$sessão.clientes, cliente_data.id]
+            clientes : [...clientes_, cliente_data.id]
         });
-        sessão.update( value => ({
-            ...value,
-            clientes : [...$sessão.clientes, cliente_data.id]
-        }))
+        sessão.update( prev => {
+            return {...prev, clientes : [...(prev.clientes||[]), cliente_data.id]}
+        });
+
+
         cadastro = { //reset
             nome : "",
             telefone: "",
@@ -373,7 +398,7 @@
         //carros prep
         let carros_ = $carros.filter(car => cliente.carros.map(c=> c? c.id : null).includes(car.id) );
         
-        let filtered = $sessão.clientes.filter(cli => cli === cliente.id);
+        let filtered = $sessão.clientes.filter(cli => cli !== cliente.id);
         firestore.collection("Representantes").doc($sessão.id).update({
             clientes : filtered
         })
@@ -391,11 +416,7 @@
     //função de cadastro de carro
     const registrar_carro = () => { //apenas prepara o scopo
         carro_ref = firestore.collection("Carros").doc();
-        carro_cadastro = {
-            modelo : "",
-            placa: "",
-            //id e dono, gerados!
-        }
+        carro_cadastro_reset();
         FLAG_carro = "novo"
     }
 
@@ -408,14 +429,18 @@
         }
         
         temp_carros = [...temp_carros, { ref: carro_ref, data : aux}]
-        carro_cadastro = { //reset
-            modelo : "",
-            placa: "",
-        }
+        carro_cadastro_reset();
 
         //local changes
         cadastro.carros = [...cadastro.carros, {...aux}];
 
+    }
+
+    const carro_cadastro_reset = () => {
+        carro_cadastro = { //reset
+            modelo : "",
+            placa: "",
+        }
     }
     
     const editar_cadastro_carro = (carro_data) => {
@@ -452,7 +477,7 @@
     onMount(()=>{
         let {OneSignal} = window;
 
-        console.log("!");
+        
 
         OneSignal.push(["init", {
             appId: "686430d5-b7be-47a4-a6a1-ec8c8ddaba33",
@@ -460,10 +485,10 @@
         }]);
 
         function setUserIdFirestore (){
-            console.log("setUserIdFirestore");
+            
             OneSignal.push(()=>{
                 OneSignal.getUserId(function(userId) {
-                    console.log("userId", userId);
+                    
                     let notification_devices = $sessão.notification_devices || [];
                     if(!notification_devices.includes(userId) && userId!==null) notification_devices.push(userId);
                     firestore.collection("Representantes").doc($sessão.id).set({...$sessão, notification_devices})
@@ -474,7 +499,7 @@
         setUserIdFirestore();
         OneSignal.push(()=>{
             OneSignal.on('subscriptionChange', function (isSubscribed) {
-                console.log('subscriptionChange');
+                
                 if(isSubscribed){
                     setUserIdFirestore();
                 }
