@@ -24,8 +24,6 @@ export const sessãoAdm = writable(null);
 
 //ip acess
 export const ipAcess = readable(["*"], function start(set) {
-    const dev = true; //desative no lançamento
-
     const ipAcessRef = firestore.collection("ipAcess");
     from(collectionData(ipAcessRef))
     .subscribe(results => {
