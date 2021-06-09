@@ -181,8 +181,7 @@
 
   import { fade } from "svelte/transition";
   import { firestore } from "./firebase";
-import { onMount } from "svelte";
-
+  
   //variáveis de controle
   // serviços opções selecionadas 
   let selectedRowIds = [];

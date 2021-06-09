@@ -17,12 +17,21 @@ import { readable, writable } from "svelte/store";
 import { firestore } from './firebase';
 import { collectionData, docData } from 'rxfire/firestore';
 import { tap, map, filter, switchMap } from 'rxjs/operators';
-import { of, combineLatest } from "rxjs";
+import { of, combineLatest, from } from "rxjs";
 
-//sessão adm
-
+//sessão ad
 export const sessãoAdm = writable(null);
 
+//ip acess
+export const ipAcess = readable(["*"], function start(set) {
+    const dev = true; //desative no lançamento
+
+    const ipAcessRef = firestore.collection("ipAcess");
+    from(collectionData(ipAcessRef))
+    .subscribe(results => {
+        set(results.map(re => re.ip));
+    })
+});
 
 // 1 - Refs
 const carrosRef = firestore.collection("Carros");

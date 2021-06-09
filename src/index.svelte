@@ -5,7 +5,11 @@
     import DesktopLogin from './desktop_login.svelte';
 
     import eruda from "eruda"; 
-    import {sessão, sessãoAdm} from './stores';
+    import {sessão, sessãoAdm, ipAcess} from './stores';
+    import { InlineNotification, Loading} from "carbon-components-svelte";
+
+    //i
+    let canDesktopRender = "pendendo";
 
     //utilitario de detecção de plataforma
     const mobileCheck = function() {
@@ -21,6 +25,24 @@
         console = eruda.get('console');
         console.config.set('catchGlobalErr', true);
     }
+    else{
+        fetch('https://api.ipify.org/?format=json')
+        .then( value => {
+            value.json().then( data => {
+                if( $ipAcess[0] === "*" ){
+                    console.log("can render what so ever");
+                    canDesktopRender = "true";//can render
+                }
+                else{
+                    if( $ipAcess.includes(data.ip) ){
+                        console.log("can render cause ip is includes");
+                        canDesktopRender = "true";
+                    }
+                    else canDesktopRender = "false";//cannot render
+                }
+            })
+        });
+    }
 </script>   
 
 {#if mobileCheck()}
@@ -30,9 +52,20 @@
         <Mobile/>
     {/if}
 {:else}
-    {#if ($sessãoAdm == null)}
-        <DesktopLogin/>
-    {:else}
-        <Desktop/>
+    {#if (canDesktopRender == "true")}
+        {#if ($sessãoAdm == null)}
+            <DesktopLogin/>
+        {:else}
+            <Desktop/>
+        {/if}
+    {/if}
+    {#if (canDesktopRender == "false")}
+        <InlineNotification
+            title="Erro:"
+            subtitle="Não foi possível verificar que está autorizado a acessar essa página (ERR> auth0)"
+        />
+    {/if}
+    {#if (canDesktopRender == "pendendo")}
+        <Loading />
     {/if}
 {/if}
