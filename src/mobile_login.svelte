@@ -5,59 +5,108 @@
         TextInput,
         PasswordInput,
         Button,
-        ButtonSet,
         Modal,
         ToastNotification
     } from "carbon-components-svelte"; 
     import { InlineNotification } from "carbon-components-svelte";  
-    import { firestore } from "./firebase"; 
+    import { firestore, auth } from "./firebase"; 
     import { sessão, representantes } from "./stores";
     import VideoBg from "./video_bg.svelte";
-    import { onMount } from 'svelte';
-    import eruda from "eruda"; 
 
-    console = eruda.get('console');
-    console.config.set('catchGlobalErr', true);
 
+    //TODO
+    //Recuperação de senha com modal de recuperação
 
     //cadastro
     let nome;
     let telefone;
-    let usuario;
     let senha;
+    let email;
+
     const registrar = async () => {
-        let check = await firestore.collection("Representantes").where("usuario", "==", usuario).get();
-        if(!check.empty){
-            cadastro_error = "Nome de usuário já em uso";
-        }
-        else{
+        auth.createUserWithEmailAndPassword(email, senha)
+        .then((userCredential) => {
+            // registrado email e senha
+            let { email, uid } = userCredential.user;
             cadastro_sucesso = true;
-            let ref = firestore.collection("Representantes").doc();
+            let ref = firestore.collection("Representantes").doc(uid);
             ref.set({
-                id: ref.id,
-                nome : nome.trim(), telefone, usuario, senha,
-                autorizado : false
+                id : uid,
+                email,
+                nome : nome.trim(), telefone, senha, autorizado : false
             });
-            nome = telefone = usuario = senha = "";
-        }
+            nome = telefone = email = senha = "";
+            register_modal=false;
+            // ...
+        })
+        .catch((error) => {
+            console.log("error", error.code)
+            cadastro_error = 
+                error.code == "auth/email-already-in-use"?  "Endereço de email já em uso" :
+                error.code == "auth/invalid-email"       ?  "Endereço de email inválido":
+                error.code == "auth/weak-password"       ?  "Senha considerada insegura": 
+                "";
+            // ..
+        })
+
+        // ------------ old code ------------
+        // let check = await firestore.collection("Representantes").where("usuario", "==", usuario).get();
+        // if(!check.empty){
+        //     cadastro_error = "Nome de usuário já em uso";
+        // }
+        // else{
+        //     cadastro_sucesso = true;
+        //     let ref = firestore.collection("Representantes").doc();
+        //     ref.set({
+        //         id: ref.id,
+        //         nome : nome.trim(), telefone, usuario, senha,
+        //         autorizado : false
+        //     });
+        //     nome = telefone = usuario = senha = "";
+        // }
     }
 
     //login
-    let login = { usuario: '', senha : '' }
+    let login = { email: '', senha : '' }
     const logar = async () => {
 
-        let check = $representantes.find(rep => rep.usuario.trim() === login.usuario.trim() && rep.senha.trim() === login.senha.trim() );
-        
-        if(!(check===undefined)){
-            if("clientes" in check) check.clientes = check.clientes.map(cli => cli.id);
+        auth.signInWithEmailAndPassword(login.email , login.senha)
+        .then((userCredential) => {
+            // Logado
+            let { uid, email } = userCredential.user;
+
+            let check = $representantes.find(rep => rep.id === uid );
+
             if(!check.autorizado){
-                login_error = "Cadastro ainda não autorizado (2)"
+                login_error = "Cadastro ainda não autorizado"
             }
-            else sessão.set(check);
-        }
-        else{
-            login_error = "Usuário e senha não encontrados (1)"
-        }
+            else sessão.set({
+                ...check,
+                email,
+            });
+            // ...
+        })
+        .catch((error) => {
+            login_error = 
+                error.code == "auth/user-not-found"      ?  "Usuário não encontrado" :
+                error.code == "auth/invalid-email"       ?  "Endereço de email inválido":
+                error.code == "auth/wrong-password"      ?  "Senha incorreta": 
+                "";
+        });
+
+        // -------------- old code ------------------
+        // let check = $representantes.find(rep => rep.usuario.trim() === login.usuario.trim() && rep.senha.trim() === login.senha.trim() );
+        
+        // if(!(check===undefined)){
+        //     if("clientes" in check) check.clientes = check.clientes.map(cli => cli.id);
+        //     if(!check.autorizado){
+        //         login_error = "Cadastro ainda não autorizado (2)"
+        //     }
+        //     else sessão.set(check);
+        // }
+        // else{
+        //     login_error = "Usuário e senha não encontrados (1)"
+        // }
     }
 
     //ui
@@ -81,20 +130,26 @@
   on:click:button--secondary={()=>{login_modal=true; register_modal=false}}
   on:open={()=>{login_modal=false;}}
   on:close
-  on:submit={()=>{login_modal=false; register_modal=false; registrar()}}  
+  on:submit={()=>{login_modal=false; registrar()}}  
   hasForm
 >
   <p>Seu cadastro deverá ser confirmado antes de logar</p>
   <FluidForm>
     <TextInput bind:value={nome} labelText="Nome" placeholder="" required />
     <TextInput bind:value={telefone} labelText="Telefone" placeholder="" required />
-    <TextInput bind:value={usuario} labelText="Usuário" placeholder="" required />
+    <TextInput bind:value={email} labelText="Email" placeholder="" type="email" required />
     <PasswordInput
         bind:value={senha}
         required
         type="password"
         labelText="Senha"   
     />
+    {#if cadastro_error.length>0}
+        <InlineNotification
+            title="Erro:"
+            subtitle={cadastro_error}
+        />
+    {/if}
   </FluidForm>
 </Modal>
 
@@ -116,7 +171,7 @@
 <p>Use seus dados de usuário e senha para acessar</p>
 <FluidForm>
     <div>
-        <TextInput bind:value={login.usuario} labelText="Usuário" placeholder="" required />
+        <TextInput bind:value={login.email} labelText="Email" placeholder="" required />
         <PasswordInput
             bind:value={login.senha}
             required

@@ -35,6 +35,7 @@
       <DataTable 
         batchSelection bind:selectedRowIds={emEsperaSelecionados}
         headers={[{key: "nome", value: "Nome"},
+                  {key: "email", value: "Endereço e-mail"},
                   {key: "telefone", value: "Telefone"}
                   ]}
         rows={$representantes.filter(rep => rep.autorizado ==false)} 

@@ -9,7 +9,7 @@
         ToastNotification,
         InlineNotification
     } from "carbon-components-svelte"; 
-    import { firestore } from "./firebase"; 
+    import { firestore, auth } from "./firebase"; 
     import VideoBg from './video_bg.svelte';
     import { sessãoAdm } from "./stores";
     
@@ -20,13 +20,29 @@
     //login
     let login = { usuario: '', senha : '' }
     const logar = async () => {
-        let check = await firestore.collection("users").where("usuario", "==", login.usuario).where("senha", "==", login.senha).get();
-        if(!check.empty){
-            sessãoAdm.set(check.docs[0].data());
-        }
-        else{
-            login_error = "Usuário e senha não encontrados (1)"
-        }
+        auth.signInWithEmailAndPassword(login.usuario + "@central.do.oleo", login.senha)
+        .then((userCredential) => {
+            // Signed in
+            let { email, uid } = userCredential.user;
+            sessãoAdm.set({ email, uid });
+            // ...
+        })
+        .catch((error) => {
+            login_error = 
+                error.code == "auth/user-not-found"      ?  "Usuário não encontrado" :
+                error.code == "auth/invalid-email"       ?  "Endereço de email inválido":
+                error.code == "auth/wrong-password"      ?  "Senha incorreta": 
+                "";
+            // ..
+        });
+        // ------- login antigo com usuário e senha ----------
+        // let check = await firestore.collection("users").where("usuario", "==", login.usuario).where("senha", "==", login.senha).get();
+        // if(!check.empty){
+        //     sessãoAdm.set(check.docs[0].data());
+        // }
+        // else{
+        //     login_error = "Usuário e senha não encontrados (1)"
+        // }
     }
 </script>
 

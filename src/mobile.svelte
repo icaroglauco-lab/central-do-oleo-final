@@ -277,7 +277,6 @@
       StructuredListCell as SLC,
       StructuredListBody as SLB,
     } from "carbon-components-svelte";
-    import eruda from "eruda"; 
     import {onMount} from 'svelte';
 
     
