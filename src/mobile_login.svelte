@@ -9,6 +9,7 @@
         ToastNotification
     } from "carbon-components-svelte"; 
     import { InlineNotification } from "carbon-components-svelte";  
+import { docData } from "rxfire/firestore";
     import { firestore, auth } from "./firebase"; 
     import { sessão, representantes } from "./stores";
     import VideoBg from "./video_bg.svelte";
@@ -74,16 +75,21 @@
         .then((userCredential) => {
             // Logado
             let { uid, email } = userCredential.user;
-
-            let check = $representantes.find(rep => rep.id === uid );
-
-            if(!check.autorizado){
-                login_error = "Cadastro ainda não autorizado"
-            }
-            else sessão.set({
-                ...check,
-                email,
-            });
+            let ref = docData(firestore.collection("Representantes").doc(uid))
+            ref.subscribe(check => {
+                if(!("id" in check)){
+                    login_error = "Erro interno ao encontrar dados do representante associados a esse login, favor, entre em contato com a administração e informe esse erro"
+                    return;
+                }
+                if(!check.autorizado){
+                    login_error = "Cadastro ainda não autorizado"
+                }
+                else sessão.set({
+                    ...check,
+                    email,
+                });
+            })
+            
             // ...
         })
         .catch((error) => {
