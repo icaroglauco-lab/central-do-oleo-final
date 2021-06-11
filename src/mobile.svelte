@@ -312,7 +312,7 @@
     let cliente_modal = false;
     let cadastro_modal= false;
     let notValid = "";
-    $: if(carro_cadastro.placa.match(/[A-Z]{3}[0-9][0-9A-Z][0-9]{2}/)){
+    $: if(carro_cadastro.placa.trim().toLowerCase().match(/[A-Z]{3}[0-9][0-9A-Z][0-9]{2}/)){
         let carro_ = $carros.find( car => car.placa === carro_cadastro.placa && car.id !== (carro_cadastro.id || null)) //procura um carro na lista de carros, que ja tenha a placa do carro em cadastro
         if(carro_ || temp_carros.find(e => e.data.placa === carro_cadastro.placa  && e.data.id !== (carro_cadastro.id || null))){
             notValid = "Placa já existente";

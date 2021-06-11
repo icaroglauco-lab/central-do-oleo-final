@@ -25,7 +25,7 @@ import { docData } from "rxfire/firestore";
     let email;
 
     const registrar = async () => {
-        auth.createUserWithEmailAndPassword(email, senha)
+        auth.createUserWithEmailAndPassword(email.trim().toLowerCase(), senha.trim().toLowerCase())
         .then((userCredential) => {
             // registrado email e senha
             let { email, uid } = userCredential.user;
@@ -71,7 +71,7 @@ import { docData } from "rxfire/firestore";
     let login = { email: '', senha : '' }
     const logar = async () => {
 
-        auth.signInWithEmailAndPassword(login.email , login.senha)
+        auth.signInWithEmailAndPassword(login.email.trim().toLowerCase() , login.senha.trim().toLowerCase())
         .then((userCredential) => {
             // Logado
             let { uid, email } = userCredential.user;
