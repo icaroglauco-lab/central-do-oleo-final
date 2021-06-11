@@ -3,7 +3,7 @@
   "version": "2",
   "scripts": {
     "dev": "vite --host",
-    "build": "echo export default \"versao_%time:~0,2%%time:~3,2%%time:~6,2%_%date:~-10,2%%date:~-7,2%%date:~-4,4%\" > src/versão.js && vite build",
+    "go": " node -e \"fs.writeFileSync('./public/versão.json', JSON.stringify({ 'versão': (new Date()).toLocaleString()} ))\" && vite build && firebase deploy",
     "serve": "vite preview"
   },
   "devDependencies": {

@@ -1,6 +1,18 @@
 <script>
     export let add = "";
-    import versão from './versão'
+    
+    let versão = ""
+
+    $: fetch("versão.json", {
+        headers: {
+            "Content-Type" : "text/json; charset=utf-8"
+        }
+    }).then( res => {
+        res.json().then(value => {
+            console.log(value);
+            versão = value["versão"]
+        })
+    })
 </script>
 
 <video autoplay muted loop id="myVideo"
@@ -21,7 +33,7 @@ style={`
     bottom: 0px;
     left: 2px;
     display: block;
-    color: black;">{versão}</span>
+    color: black;">Versão de build: {versão}</span>
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:wght@700&family=Mate+SC&display=swap');  
